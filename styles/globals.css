@@ -1,13 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
 
-/*  Exemplo de variaveis - personalizar conforme necessario */
-
+/*
+ * Variáveis CSS — valores definidos em lib/tokens.js e aplicados no _app.js.
+ * Use var(--cor-principal) só em CSS puro; componentes MUI usam o tema (lib/theme.js).
+ */
 :root {
   --cor-branca: #ffffff;
-  --cor-principal: #3498db;   /* azul */
-  --cor-secundaria: #2ecc71;  /* verde */
-  --cor-warning: #e74c3c;     /* vermelho */
+  --cor-principal: #6e0d6a;
+  --cor-secundaria: #a559d8;
+  --cor-destaque: #ff5031;
+  --cor-fundo: #f1e9f3;
 }

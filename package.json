@@ -2,6 +2,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.0.1",
     "@mui/material": "^9.0.1",
     "next": "^16.2.6",
     "react": "^19.2.6",
@@ -10,7 +11,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "clean": "node scripts/clean.mjs",
+    "build:clean": "npm run clean && npm run build",
+    "start:clean": "npm run build:clean && next start"
   },
   "devDependencies": {
     "autoprefixer": "^10.5.0",

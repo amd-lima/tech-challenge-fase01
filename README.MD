@@ -1,98 +1,89 @@
-# TECH CHALLENGE 
+# TECH CHALLENGE
 
 ## FASE 01
 
+Aplicação de gerenciamento financeiro com **Next.js** e **Material UI** (Design System), dados mockados via API Routes em memória.
+
 ### ⚙️ Instalação e Execução
-Clonar o repositório
+
 ```bash
 git clone https://github.com/seu-usuario/seu-repo.git
-```
-
-Atualizar seu projeto com as mudanças do repositorio remoto
-```bash
-git pull
-```
-
-Instalar dependências
-```bash
+cd tech
 npm install
-```
-
-Rodar o servidor de desenvolvimento
-```bash
 npm run dev
 ```
 
-O projeto estará disponível em:
-```bash
-http://localhost:3000
+Acesse: http://localhost:3000
+
+### Limpar cache (mudanças não aparecem no navegador)
+
+`npm run start` **não recompila** — só serve a pasta `.next` do último `npm run build`.
+
+```powershell
+# Pare o servidor (Ctrl+C), depois:
+npm run build:clean
+$env:PORT=3002; npm run start
 ```
+
+No navegador: **Ctrl+Shift+R** ou aba anônima. Em desenvolvimento use **`npm run dev`** (atualiza ao salvar).
 
 ### 🚀 Fluxo de Uso
-Abrir Home (/) → vê saldo e últimas transações.
 
-Abrir Transações (/transactions) → lista todas as transações e formulário para adicionar.
+1. **Home (/)** — Saldo, extrato das últimas 5 transações, formulário rápido de nova transação (tipo + valor; data automática = hoje).
+2. **Transações (/transactions)** — Lista completa com ver detalhes, editar (modal) e excluir; formulário completo com data.
+3. Saldo recalculado automaticamente a cada alteração nas transações.
 
-Adicionar transação → preencher formulário e enviar → backend salva em /api/transactions.
+### 🎨 Cores
 
-Deletar transação → clicar em "Deletar" → backend remove via /api/transactions.
+| Onde | O que controla |
+|------|----------------|
+| **`lib/tokens.js`** | **Edite aqui** — fonte única (MUI + variáveis CSS) |
+| `lib/theme.js` | Tema Material UI (`primary`, `secondary`, fundo…) |
+| `styles/globals.css` | Variáveis `--cor-*` (fallback; sincronize com `tokens.js`) |
+| `sx={{ color: "primary.main" }}` | Botões, AppBar, cards — vêm do tema MUI |
 
-Saldo atualizado → sempre que consultar /api/saldo, o valor é recalculado.
+Alterar só `globals.css` **não** muda botões MUI. Use `lib/tokens.js` e rode `npm run build` (ou `npm run dev`).
 
-### 📂 Estrutura das Telas
-**Home (/)** → Exibe saldo atual e últimas transações.
+### 📂 Estrutura (estilo Angular)
 
-**Transações (/transactions)** → Lista todas as transações e possui formulário para adicionar novas.
+No React não existe `.html` separado — o “template” é JSX em arquivos `.js`. A separação fica assim:
 
-#### _Home Page (pages/index.js)_
-Objetivo: Dar boas-vindas ao usuário e mostrar o saldo atual da conta.
+| Angular | Este projeto |
+|---------|----------------|
+| `*.component.ts` (lógica) | `hooks/*.js` |
+| `*.component.html` (template) | `views/*.js` e `components/forms/*View.js` |
+| `*.component.css` | MUI `sx` / `styles/globals.css` |
+| rota | `pages/*.js` (só conecta hook + view) |
 
-**Funcionalidades:**
-- Exibe o saldo atual (consultado via /api/saldo).
-- Mostra as últimas 5 transações (consultadas via /api/transactions).
-- incluir um link para a página de transações (/transactions).
+```
+hooks/              # Lógica (estado, API, handlers)
+views/              # Templates das páginas (só JSX)
+components/         # Peças reutilizáveis (Layout, lista, dialogs)
+components/forms/   # Template do formulário
+lib/                # Tema, formatação, API client
+pages/              # Rotas finas: hook + view
+  api/              # Mock em memória
+```
 
-#### _Listagem de Transações (pages/transactions.js)_
-- Objetivo: Exibir todas as transações realizadas.
+Exemplo — `pages/index.js`:
 
-**Funcionalidades:**
-- Lista todas as transações salvas.
-
-- Permite deletar uma transação.
-
-- Inclui um formulário para adicionar novas transações:
-
-**Tipo (depósito ou transferência).**
-
-Valor.
-
-Data.
-
-> Ao adicionar ou deletar, os dados são enviados para o endpoint /api/transactions.
+```js
+const controller = useTransactionsManager({ withSaldo: true, recentLimit: 5 });
+return <HomeView {...controller} />;
+```
 
 ### 📡 Endpoints da API
-- GET /api/transactions → Lista todas as transações.
 
-- POST /api/transactions → Adiciona nova transação.
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/transactions` | Lista transações |
+| POST | `/api/transactions` | Cria transação |
+| PUT | `/api/transactions` | Atualiza transação |
+| DELETE | `/api/transactions` | Remove por `id` |
+| GET | `/api/saldo` | Saldo calculado |
 
-- DELETE /api/transactions → Remove transação pelo id.
+**Body POST/PUT:**
 
-- GET /api/saldo → Retorna saldo calculado com base nas transações.
-#### GET /api/transactions
-Descrição: Retorna todas as transações.
-
-Exemplo de resposta:
-```json 
-[
-  { "id": 1, "tipo": "depósito", "valor": 1000, "data": "2026-05-15" },
-  { "id": 2, "tipo": "transferência", "valor": -200, "data": "2026-05-16" }
-]
-```
-
-#### POST /api/transactions
-Descrição: Adiciona uma nova transação.
-
-Body esperado:
 ```json
 {
   "tipo": "depósito",
@@ -100,43 +91,16 @@ Body esperado:
   "data": "2026-05-16"
 }
 ```
-Resposta:
-```json
-{
-  "id": 1652712345678,
-  "tipo": "depósito",
-  "valor": 500,
-  "data": "2026-05-16"
-}
-```
 
-#### DELETE /api/transactions
-Descrição: Remove uma transação pelo id.
+PUT exige também `"id": 1`.
 
-Body esperado:
-```json
-{ "id": 2 }
-```
-Resposta:
-```json
-{ "message": "Transação deletada" }
-```
+Tipos disponíveis: depósito, transferência, câmbio, doc/ted, empréstimo. Transferências gravam valor negativo automaticamente.
 
-#### GET /api/saldo
-Descrição: Calcula e retorna o saldo atual com base nas transações.
+### ✅ Requisitos do desafio
 
-Exemplo de resposta:
-```json
-{ "saldo": 800 }
-```
-
-## 🛠️ Configuração do Gitignore
-
-Este projeto já inclui um arquivo `.gitignore` para evitar versionar arquivos desnecessários.  
-Principais exclusões:
-- `node_modules/` → dependências instaladas localmente.
-- `.next/` → build gerado pelo Next.js.
-- `.env*` → arquivos de variáveis de ambiente (senhas, tokens, etc).
-- Logs e caches temporários.
-
-Isso garante que apenas o código-fonte e arquivos relevantes sejam enviados ao repositório.
+- [x] Saldo, extrato e nova transação
+- [x] Listagem com detalhes, editar e deletar
+- [x] Adicionar transação (página + home)
+- [x] Editar transação (modal)
+- [x] Next.js + MUI
+- [x] Dados mockados (API em memória, fonte única)
